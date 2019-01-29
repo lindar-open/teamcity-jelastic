@@ -4,7 +4,7 @@
   <parent>
     <artifactId>jelastic-deploy-plugin</artifactId>
     <groupId>com.lindar.teamcity</groupId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
   </parent>
   <artifactId>jelastic-deploy-plugin-common</artifactId>
   <packaging>jar</packaging>

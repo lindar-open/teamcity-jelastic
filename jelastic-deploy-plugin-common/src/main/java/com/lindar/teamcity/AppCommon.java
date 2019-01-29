@@ -8,5 +8,6 @@ public class AppCommon {
   public static final String PARAM_PASSWORD = "jelastic.password";
   public static final String PARAM_ENVIRONMENT = "jelastic.environment";
   public static final String PARAM_FILEPATH = "jelastic.filepath";
+  public static final String PARAM_NODE_GROUP = "jelastic.nodeGroup";
 
 }

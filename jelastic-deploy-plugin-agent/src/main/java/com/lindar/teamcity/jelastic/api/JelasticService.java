@@ -77,6 +77,7 @@ public class JelasticService {
     private String apiHoster;
     private String environment;
     private String context;
+    private String nodeGroup;
 
     public String getEnvironment() {
         return environment;
@@ -281,6 +282,10 @@ public class JelasticService {
             qparams.add(new BasicNameValuePair("newContext", getContext()));
             qparams.add(new BasicNameValuePair("domain", getEnvironment()));
 
+            if(getNodeGroup() != null) {
+                qparams.add(new BasicNameValuePair("nodeGroup", getNodeGroup()));
+            }
+
             for (NameValuePair nameValuePair : qparams) {
                 log.info(nameValuePair.getName() + " : " + nameValuePair.getValue());
             }
@@ -329,5 +334,13 @@ public class JelasticService {
             ex.printStackTrace();
             return null;
         }
+    }
+
+    public String getNodeGroup() {
+        return nodeGroup;
+    }
+
+    public void setNodeGroup(String nodeGroup) {
+        this.nodeGroup = nodeGroup;
     }
 }

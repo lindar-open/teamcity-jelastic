@@ -35,6 +35,13 @@
         </td>
     </tr>
     <tr>
+        <th class="noBorder"><label>Node Group: </label></th>
+        <td>
+            <props:textProperty name="<%=AppCommon.PARAM_NODE_GROUP%>"  className="longField"/>
+            <span class="smallNote">(optional) defaults to the first node</span>
+        </td>
+    </tr>
+    <tr>
         <th class="noBorder"><label>File Path: </label></th>
         <td>
             <props:textProperty name="<%=AppCommon.PARAM_FILEPATH%>"  className="longField"/>

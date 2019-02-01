@@ -64,6 +64,7 @@ public class JelasticBuildProcess extends SyncBuildProcessAdapter {
                     val deploy = jelasticService.deploy(authenticationResponse, uploadResponse);
                     if (deploy.getResponse().getResult() == 0) {
                         myLogger.message("      Deploy file : SUCCESS");
+                        myLogger.message("       Node Group : " + nodeGroup);
                         myLogger.message("       Deploy log :");
                         myLogger.message(deploy.getResponse().getResponses()[0].getOut());
                     } else {

@@ -6,18 +6,18 @@
   <version>1.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-      <teamcity-version>10.0</teamcity-version>
+      <teamcity-version>2021.1</teamcity-version>
   </properties>
   <repositories>
-    <repository>
-        <id>JetBrains</id>
-        <url>http://repository.jetbrains.com/all</url>
-    </repository>
+      <repository>
+          <id>jetbrains-all</id>
+          <url>https://download.jetbrains.com/teamcity-repository</url>
+      </repository>
   </repositories>
   <pluginRepositories>
       <pluginRepository>
           <id>JetBrains</id>
-          <url>http://repository.jetbrains.com/all</url>
+          <url>https://repository.jetbrains.com/all</url>
       </pluginRepository>
   </pluginRepositories>
   <build>

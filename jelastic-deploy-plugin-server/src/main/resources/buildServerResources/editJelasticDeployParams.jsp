@@ -45,7 +45,7 @@
         <th class="noBorder"><label>File Path: </label></th>
         <td>
             <props:textProperty name="<%=AppCommon.PARAM_FILEPATH%>"  className="longField"/>
-            <span class="smallNote">Path to file / artifact to deploy</span>
+            <span class="smallNote">Path to file / artifact to deploy. Supports regex on file name only not the whole path.</span>
         </td>
     </tr>
 </l:settingsGroup>

@@ -22,6 +22,12 @@
       <artifactId>server-api</artifactId>
       <version>${teamcity-version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-httpclient</artifactId>
+          <groupId>commons-httpclient</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

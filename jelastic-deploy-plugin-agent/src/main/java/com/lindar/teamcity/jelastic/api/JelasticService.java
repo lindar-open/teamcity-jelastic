@@ -18,19 +18,20 @@ package com.lindar.teamcity.jelastic.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.lindar.teamcity.jelastic.api.model.AuthenticationResponse;
-import com.lindar.teamcity.jelastic.api.model.CreateObjectResponse;
 import com.lindar.teamcity.jelastic.api.model.DeployResponse;
 import com.lindar.teamcity.jelastic.api.model.UploadResponse;
+import com.lindar.wellrested.WellRestedRequest;
+import com.lindar.wellrested.vo.WellRestedResponse;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -43,8 +44,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -70,6 +70,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.AUTH_URL;
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.DEPLOY_URL;
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.FID_PARAM;
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.FID_VALUE;
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.FILE_PARAM;
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.SESSION_PARAM;
+import static com.lindar.teamcity.jelastic.util.JelasticProperties.UPLOAD_URL;
+
 @RequiredArgsConstructor
 public class JelasticService {
 
@@ -88,18 +96,12 @@ public class JelasticService {
     private int         numSt;
     private CookieStore cookieStore = new BasicCookieStore();
 
-    private String authPath         = "/" + version + "/users/authentication/rest/signin";
-    private String uploadPath       = "/" + version + "/storage/uploader/rest/upload";
-    private String createObjectPath = "/deploy/createobject";
-    private String deployPath       = "/deploy/DeployArchive";
-
-
     public AuthenticationResponse authentication(String email, String password) {
         AuthenticationResponse authenticationResponse = null;
         try {
             HttpClient httpclient = buildHttpClientWithSSLAcceptAll().setDefaultCookieStore(this.cookieStore).build();
 
-            URI uri = new URIBuilder().setScheme(this.scheme).setHost(this.apiHoster).setPort(port).setPath(this.authPath).build();
+            URI uri = new URIBuilder().setScheme(this.scheme).setHost(this.apiHoster).setPort(port).setPath(String.format(AUTH_URL, this.apiHoster)).build();
             buildLogger.debug("Authentication url : " + uri);
 
             HttpPost httpPost = new HttpPost(uri);
@@ -125,46 +127,25 @@ public class JelasticService {
 
     public UploadResponse upload(AuthenticationResponse authenticationResponse) {
         UploadResponse uploadResponse = null;
-        try {
-            HttpClient httpclient = buildHttpClientWithSSLAcceptAll().setDefaultCookieStore(this.cookieStore).build();
 
-            for (Cookie cookie : this.cookieStore.getCookies()) {
-                buildLogger.debug(cookie.getName() + " = " + cookie.getValue());
-            }
+        for (Cookie cookie : this.cookieStore.getCookies()) {
+            buildLogger.debug(cookie.getName() + " = " + cookie.getValue());
+        }
 
-            final File file = findFileInPath(this.filepath).toFile();
-            if (!file.exists()) {
-                throw new IllegalArgumentException("First build artifact and try again. Artifact not found: " + this.filepath);
-            }
+        final File file = findFileInPath(this.filepath).toFile();
+        if (!file.exists()) {
+            throw new IllegalArgumentException("First build artifact and try again. Artifact not found: " + this.filepath);
+        }
 
-            MultipartEntity multipartEntity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, num -> {
-                if (((int) ((num / (float) totalSize) * 100)) != numSt) {
-                    buildLogger.message("File Uploading : [" + (int) ((num / (float) totalSize) * 100) + "%]");
-                    numSt = ((int) ((num / (float) totalSize) * 100));
-                }
-            });
-
-            multipartEntity.addPart("fid", new StringBody("123456", ContentType.TEXT_PLAIN));
-            multipartEntity.addPart("session", new StringBody(authenticationResponse.getSession(), ContentType.TEXT_PLAIN));
-            multipartEntity.addPart("file", new FileBody(file));
-            totalSize = multipartEntity.getContentLength();
-
-            URI uri = new URIBuilder().setScheme(this.scheme).setHost(this.apiHoster).setPort(port).setPath(this.uploadPath).build();
-            buildLogger.message("Upload url : " + uri);
-
-            HttpPost httpPost = new HttpPost(uri);
-            RequestConfig requestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT).build();
-            httpPost.setConfig(requestConfig);
-            httpPost.setEntity(multipartEntity);
-
-            HttpResponse httpResponse = httpclient.execute(httpPost);
-            String responseBody = EntityUtils.toString(httpResponse.getEntity(), UTF_8);
-
-            buildLogger.message("Upload response : " + responseBody);
-            Gson gson = new GsonBuilder().setVersion(version).create();
-            uploadResponse = gson.fromJson(responseBody, UploadResponse.class);
-        } catch (URISyntaxException | IOException e) {
-            buildLogger.error(e.getMessage());
+        HttpEntity httpEntity = MultipartEntityBuilder.create()
+                                                      .addPart(FID_PARAM, new StringBody(FID_VALUE, ContentType.TEXT_PLAIN))
+                                                      .addPart(SESSION_PARAM, new StringBody(authenticationResponse.getSession(), ContentType.TEXT_PLAIN))
+                                                      .addPart(FILE_PARAM, new FileBody(file)).build();
+        WellRestedResponse wellRestedResponse = WellRestedRequest.builder().timeout(120 * 1000).url(String.format(UPLOAD_URL, this.apiHoster)).build().post().httpEntity(httpEntity).submit();
+        if (wellRestedResponse.isValid()) {
+            return wellRestedResponse.fromJson()
+                                     .castTo(new TypeToken<UploadResponse>() {
+                                     });
         }
         return uploadResponse;
     }
@@ -196,42 +177,6 @@ public class JelasticService {
         return Pattern.matches(fileNameRegex, currentFileName);
     }
 
-    public CreateObjectResponse createObject(UploadResponse upLoader, AuthenticationResponse authentication) {
-        CreateObjectResponse createObjectResponse = null;
-        try {
-            HttpClient httpclient = buildHttpClientWithSSLAcceptAll().setDefaultCookieStore(this.cookieStore).build();
-
-            List<NameValuePair> nameValuePairList = new ArrayList<>();
-            nameValuePairList.add(new BasicNameValuePair("charset", UTF_8));
-            nameValuePairList.add(new BasicNameValuePair("session", authentication.getSession()));
-            nameValuePairList.add(new BasicNameValuePair("type", "JDeploy"));
-            nameValuePairList.add(new BasicNameValuePair("data",
-                                                         "{'name':'" + upLoader.getName() + "', 'archive':'" + upLoader.getFile() + "', 'link':0, 'size':" + upLoader.getSize() + ", 'comment':'" + upLoader.getName() + "'}"));
-
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(nameValuePairList, "UTF-8");
-
-
-            for (NameValuePair nameValuePair : nameValuePairList) {
-                buildLogger.message(nameValuePair.getName() + " : " + nameValuePair.getValue());
-            }
-
-            URI uri = new URIBuilder().setScheme(this.scheme).setHost(this.apiHoster).setPort(port).setPath(this.createObjectPath).build();
-            buildLogger.message("CreateObject url : " + uri.toString());
-
-            HttpPost httpPost = new HttpPost(uri);
-            httpPost.setEntity(entity);
-            ResponseHandler<String> responseHandler = new BasicResponseHandler();
-            String responseBody = httpclient.execute(httpPost, responseHandler);
-            buildLogger.message("CreateObject response : " + responseBody);
-
-            Gson gson = new GsonBuilder().setVersion(version).create();
-            createObjectResponse = gson.fromJson(responseBody, CreateObjectResponse.class);
-        } catch (URISyntaxException | IOException e) {
-            buildLogger.error(e.getMessage());
-        }
-        return createObjectResponse;
-    }
-
     public DeployResponse deploy(AuthenticationResponse authentication, UploadResponse upLoader) {
         DeployResponse deployResponse = null;
         try {
@@ -253,7 +198,7 @@ public class JelasticService {
                 buildLogger.message(nameValuePair.getName() + " : " + nameValuePair.getValue());
             }
 
-            URI uri = new URIBuilder().setScheme(this.scheme).setHost(this.apiHoster).setPort(port).setPath(this.createObjectPath).setParameters(queryParams).build();
+            URI uri = new URIBuilder().setScheme(this.scheme).setHost(this.apiHoster).setPort(port).setPath(String.format(DEPLOY_URL, this.apiHoster)).setParameters(queryParams).build();
             buildLogger.message("Deploy url : " + uri);
 
             HttpGet httpPost = new HttpGet(uri);

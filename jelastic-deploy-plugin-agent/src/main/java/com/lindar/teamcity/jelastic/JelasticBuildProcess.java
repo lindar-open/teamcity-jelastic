@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class JelasticBuildProcess extends SyncBuildProcessAdapter {
 
-    private final AgentRunningBuild agentRunningBuild;
+    private final AgentRunningBuild  agentRunningBuild;
     private final BuildRunnerContext buildRunnerContext;
 
     public JelasticBuildProcess(@NotNull AgentRunningBuild agentRunningBuild, @NotNull BuildRunnerContext buildRunnerContext) {
@@ -51,26 +51,15 @@ public class JelasticBuildProcess extends SyncBuildProcessAdapter {
                 myLogger.message("         File URL : " + uploadResponse.getFile());
                 myLogger.message("        File size : " + uploadResponse.getSize());
                 myLogger.message("------------------------------------------------------------------------");
-                val createObject = jelasticService.createObject(uploadResponse, authenticationResponse);
-                if (createObject.getResult() == 0) {
-                    myLogger.message("File registration : SUCCESS");
-                    myLogger.message("  Registration ID : " + createObject.getResponse().getObject().getId());
-                    myLogger.message("     Developer ID : " + createObject.getResponse().getObject().getDeveloper());
-                    myLogger.message("------------------------------------------------------------------------");
-                    val deploy = jelasticService.deploy(authenticationResponse, uploadResponse);
-                    if (deploy.getResponse().getResult() == 0) {
-                        myLogger.message("      Deploy file : SUCCESS");
-                        myLogger.message("       Node Group : " + nodeGroup);
-                        myLogger.message("       Deploy log :");
-                        myLogger.message(deploy.getResponse().getResponses()[0].getOut());
-                    } else {
-                        myLogger.error("          Deploy : FAILED");
-                        myLogger.error("           Error : " + deploy.getResponse().getError());
-                        return BuildFinishedStatus.FINISHED_FAILED;
-                    }
+                val deploy = jelasticService.deploy(authenticationResponse, uploadResponse);
+                if (deploy.getResponse().getResult() == 0) {
+                    myLogger.message("      Deploy file : SUCCESS");
+                    myLogger.message("       Node Group : " + nodeGroup);
+                    myLogger.message("       Deploy log :");
+                    myLogger.message(deploy.getResponse().getResponses()[0].getOut());
                 } else {
-                    myLogger.error("Create object : FAILED");
-                    myLogger.error("        Error : " + createObject.getError());
+                    myLogger.error("          Deploy : FAILED");
+                    myLogger.error("           Error : " + deploy.getResponse().getError());
                     return BuildFinishedStatus.FINISHED_FAILED;
                 }
             } else {

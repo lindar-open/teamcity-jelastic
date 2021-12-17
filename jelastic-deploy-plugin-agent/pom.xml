@@ -24,6 +24,11 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>com.lindar</groupId>
+      <artifactId>well-rested-client</artifactId>
+      <version>1.7.3</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

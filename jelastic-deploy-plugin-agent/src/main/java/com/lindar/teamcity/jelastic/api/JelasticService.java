@@ -22,6 +22,7 @@ import com.lindar.teamcity.jelastic.api.model.AuthenticationResponse;
 import com.lindar.teamcity.jelastic.api.model.CreateObjectResponse;
 import com.lindar.teamcity.jelastic.api.model.DeployResponse;
 import com.lindar.teamcity.jelastic.api.model.UploadResponse;
+import lombok.SneakyThrows;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -54,10 +55,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class JelasticService {
 
@@ -73,7 +79,8 @@ public class JelasticService {
     private String urlUploader = "/" + version + "/storage/uploader/rest/upload";
     private String urlCreateObject = "/deploy/createobject";
     private String urlDeploy = "/deploy/DeployArchive";
-    private String filepath;
+    private String fileBaseDir;
+    private String filePath;
     private String apiHoster;
     private String environment;
     private String context;
@@ -103,12 +110,20 @@ public class JelasticService {
         this.apiHoster = apiHoster;
     }
 
-    public String getFilepath() {
-        return filepath;
+    public String getFileBaseDir() {
+        return fileBaseDir;
     }
 
-    public void setFilepath(String filepath) {
-        this.filepath = filepath;
+    public void setFileBaseDir(String fileBaseDir) {
+        this.fileBaseDir = fileBaseDir;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public int getPort() {
@@ -190,11 +205,7 @@ public class JelasticService {
                 log.debug(cookie.getName() + " = " + cookie.getValue());
             }
 
-            final File file = new File(getFilepath());
-            if (!file.exists()) {
-                throw new IllegalArgumentException("First build artifact and try again. Artifact not found: " + getFilepath());
-            }
-
+            File file = getFile();
             MultipartEntity multipartEntity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, new CustomMultiPartEntity.ProgressListener() {
                 public void transferred(long num) {
                     if (((int) ((num / (float) totalSize) * 100)) != numSt) {
@@ -282,7 +293,7 @@ public class JelasticService {
             qparams.add(new BasicNameValuePair("newContext", getContext()));
             qparams.add(new BasicNameValuePair("domain", getEnvironment()));
 
-            if(getNodeGroup() != null) {
+            if (getNodeGroup() != null) {
                 qparams.add(new BasicNameValuePair("nodeGroup", getNodeGroup()));
             }
 
@@ -343,4 +354,33 @@ public class JelasticService {
     public void setNodeGroup(String nodeGroup) {
         this.nodeGroup = nodeGroup;
     }
+
+    @SneakyThrows
+    @SuppressWarnings("resource")
+    private File getFile() {
+        String fullPath = fileBaseDir + File.separator + filePath;
+
+        if (filePath.contains("*")) {
+            PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + fullPath);
+            List<Path> files = Files.find(
+                    FileSystems.getDefault().getPath(fileBaseDir),
+                    Integer.MAX_VALUE,
+                    (p, a) -> pathMatcher.matches(p)).collect(Collectors.toList());
+
+            if (files.size() == 0) {
+                throw new IllegalArgumentException("First build artifact and try again. Artifact not found: " + fullPath);
+            } else if (files.size() > 1) {
+                throw new IllegalArgumentException("More than one artifact found in: " + fullPath);
+            } else {
+                return files.get(0).toFile();
+            }
+        }
+
+        File file = new File(fullPath);
+        if (!file.exists()) {
+            throw new IllegalArgumentException("First build artifact and try again. Artifact not found: " + fullPath);
+        }
+        return file;
+    }
+
 }

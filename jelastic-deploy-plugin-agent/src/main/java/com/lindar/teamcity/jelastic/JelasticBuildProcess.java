@@ -9,7 +9,6 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.Map;
 
 public class JelasticBuildProcess extends SyncBuildProcessAdapter {
@@ -39,7 +38,8 @@ public class JelasticBuildProcess extends SyncBuildProcessAdapter {
         jelasticService.setScheme("https");
         jelasticService.setApiHoster(hostUrl);
         jelasticService.setEnvironment(environment);
-        jelasticService.setFilepath(agentRunningBuild.getCheckoutDirectory().getAbsolutePath() + File.separator + filepath);
+        jelasticService.setFileBaseDir(agentRunningBuild.getCheckoutDirectory().getAbsolutePath());
+        jelasticService.setFilePath(filepath);
         jelasticService.setNodeGroup(nodeGroup);
 
         AuthenticationResponse authenticationResponse = jelasticService.authentication(username, password);

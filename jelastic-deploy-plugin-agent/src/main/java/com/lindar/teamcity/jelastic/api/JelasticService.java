@@ -309,12 +309,22 @@ public class JelasticService {
             log.info("Deploy response : " + responseBody);
             Gson gson = new GsonBuilder().setVersion(version).create();
             deployResponse = gson.fromJson(responseBody, DeployResponse.class);
-        } catch (URISyntaxException e) {
-            log.error(e.getMessage());
-        } catch (ClientProtocolException e) {
-            log.error(e.getMessage());
-        } catch (IOException e) {
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            deployResponse = new DeployResponse();
+            DeployResponse.Response response = new DeployResponse.Response();
+            deployResponse.setResponse(response);
+
+            // Let's treat gateway timeout as success (Jelastic..)
+            if ("Gateway Time-out".equals(e.getMessage())) {
+                DeployResponse.Responses[] responses = {new DeployResponse.Responses()};
+                responses[0].setOut(e.getMessage());
+                response.setResult(0);
+                response.setResponses(responses);
+            } else {
+                log.error(e.getMessage());
+                response.setResult(-1);
+                response.setError(e.getMessage());
+            }
         }
         return deployResponse;
     }

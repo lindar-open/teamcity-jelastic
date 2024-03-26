@@ -4,7 +4,7 @@
   <parent>
     <artifactId>jelastic-deploy-plugin</artifactId>
     <groupId>com.lindar.teamcity</groupId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
   </parent>
   <artifactId>jelastic-deploy-plugin-agent</artifactId>
   <packaging>jar</packaging>
@@ -13,7 +13,7 @@
     <dependency>
       <groupId>com.lindar.teamcity</groupId>
       <artifactId>jelastic-deploy-plugin-common</artifactId>
-      <version>1.2.0</version>
+      <version>1.2.1</version>
       <scope>compile</scope>
     </dependency>
 

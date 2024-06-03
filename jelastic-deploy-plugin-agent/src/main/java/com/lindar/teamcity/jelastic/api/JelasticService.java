@@ -303,7 +303,7 @@ public class JelasticService {
 
             URI uri = URIUtils.createURI(getScheme(), getApiHoster(), getPort(), getUrlDeploy(), URLEncodedUtils.format(qparams, "UTF-8"), null);
             log.info("Deploy url : " + uri.toString());
-            HttpGet httpPost = new HttpGet(uri);
+            HttpPost httpPost = new HttpPost(uri);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String responseBody = httpclient.execute(httpPost, responseHandler);
             log.info("Deploy response : " + responseBody);

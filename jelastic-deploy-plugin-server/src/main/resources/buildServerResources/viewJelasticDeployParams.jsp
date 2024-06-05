@@ -19,6 +19,11 @@
 </div>
 
 <div class="parameter">
+    AppId: <strong><props:displayValue name="<%=AppCommon.PARAM_APPID%>"
+                                       emptyValue="none"/></strong>
+</div>
+
+<div class="parameter">
     Node Group: <strong><props:displayValue name="<%=AppCommon.PARAM_NODE_GROUP%>"
                                              emptyValue="none"/></strong>
 </div>

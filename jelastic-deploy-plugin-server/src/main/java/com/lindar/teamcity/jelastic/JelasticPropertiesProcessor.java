@@ -30,6 +30,10 @@ public class JelasticPropertiesProcessor implements PropertiesProcessor {
             result.add(new InvalidProperty(AppCommon.PARAM_ENVIRONMENT, "Environment is required"));
         }
 
+//        if (StringUtil.isEmptyOrSpaces(properties.get(AppCommon.PARAM_APPID))) {
+//            result.add(new InvalidProperty(AppCommon.PARAM_APPID, "AppId is required"));
+//        }
+
         if (StringUtil.isEmptyOrSpaces(properties.get(AppCommon.PARAM_FILEPATH))) {
             result.add(new InvalidProperty(AppCommon.PARAM_FILEPATH, "Filepath is required"));
         }

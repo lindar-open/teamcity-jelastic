@@ -35,6 +35,13 @@
         </td>
     </tr>
     <tr>
+        <th class="noBorder"><label>AppId: </label></th>
+        <td>
+            <props:textProperty name="<%=AppCommon.PARAM_APPID%>"  className="longField"/>
+            <span class="smallNote">Environment's appid to deploy to.</span>
+        </td>
+    </tr>
+    <tr>
         <th class="noBorder"><label>Node Group: </label></th>
         <td>
             <props:textProperty name="<%=AppCommon.PARAM_NODE_GROUP%>"  className="longField"/>

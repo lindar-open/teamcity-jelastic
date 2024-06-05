@@ -32,6 +32,7 @@ public class JelasticBuildProcess extends SyncBuildProcessAdapter {
         String password = runnerParameters.get(AppCommon.PARAM_PASSWORD);
         String filepath = runnerParameters.get(AppCommon.PARAM_FILEPATH);
         String environment = runnerParameters.get(AppCommon.PARAM_ENVIRONMENT);
+        String appId = runnerParameters.get(AppCommon.PARAM_APPID);
         String nodeGroup = runnerParameters.get(AppCommon.PARAM_NODE_GROUP);
 
         JelasticService jelasticService = new JelasticService();
@@ -42,7 +43,7 @@ public class JelasticBuildProcess extends SyncBuildProcessAdapter {
         jelasticService.setFilePath(filepath);
         jelasticService.setNodeGroup(nodeGroup);
 
-        AuthenticationResponse authenticationResponse = jelasticService.authentication(username, password);
+        AuthenticationResponse authenticationResponse = jelasticService.authentication(appId, username, password);
         if (authenticationResponse.getResult() == 0) {
             myLogger.message("------------------------------------------------------------------------");
             myLogger.message("   Authentication : SUCCESS");

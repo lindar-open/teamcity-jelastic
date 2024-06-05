@@ -22,6 +22,7 @@ import com.lindar.teamcity.jelastic.api.model.AuthenticationResponse;
 import com.lindar.teamcity.jelastic.api.model.CreateObjectResponse;
 import com.lindar.teamcity.jelastic.api.model.DeployResponse;
 import com.lindar.teamcity.jelastic.api.model.UploadResponse;
+import jetbrains.buildServer.util.StringUtil;
 import lombok.SneakyThrows;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -162,12 +163,15 @@ public class JelasticService {
         return urlDeploy;
     }
 
-    public AuthenticationResponse authentication(String email, String password) {
+    public AuthenticationResponse authentication(String appId, String email, String password) {
         AuthenticationResponse authenticationResponse = null;
         try {
             DefaultHttpClient httpclient = new DefaultHttpClient();
             httpclient = wrapClient(httpclient);
             List<NameValuePair> qparams = new ArrayList<NameValuePair>();
+            if (!StringUtil.isEmpty(appId)) {
+                qparams.add(new BasicNameValuePair("appId", appId));
+            }
             qparams.add(new BasicNameValuePair("login", email));
             qparams.add(new BasicNameValuePair("password", password));
             URI uri = URIUtils.createURI(getScheme(), getApiHoster(), getPort(), getUrlAuthentication(), null, null);
